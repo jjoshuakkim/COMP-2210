@@ -1,0 +1,24 @@
+public class Interview 
+{
+	int[] numbers = {1, 2, 3, 4, 5};
+	int[] evens = {5];
+	int[] odds = {5};
+	int size;
+	int size2;
+	for (int i = 0; i < numbers.length; i++)
+	{
+		if (numbers.get[i] % 2 = 0)
+		{
+			//evens[size] = numbers.get[i];
+			//size++;
+			System.out.println("I'm even");
+		}
+		
+		else
+		{
+			//evens[size2] = numbers.get[i];
+			//size2++;
+			System.out.println("I'm odd");
+		}
+	}
+}

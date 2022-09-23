@@ -1,0 +1,18 @@
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+import org.junit.Assert;
+import org.junit.jupiter.api.Test;
+
+class GameEngineTest 
+{
+	@Test public void allValidWordsTest4() 
+	{
+	      GameEngine game = new GameEngine();
+	      game.loadLexicon("words.txt");
+	      SortedSet<String> expected = new TreeSet<String>();
+	      Assert.assertEquals(expected, game.getAllScorableWords(10));
+	   }
+}

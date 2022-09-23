@@ -1,0 +1,278 @@
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+import java.util.SortedSet;
+import java.util.TreeSet;
+
+public class GameEngine implements WordSearchGame 
+{
+	private TreeSet<String> tree; 
+	private List<Integer> path;
+	private List<Integer> path2;
+	private int num;
+	private String[][] board;
+	private boolean[][]visited;
+	private SortedSet<String> vaildWords;
+   	private int minLength;
+   	private boolean lexiconLoaded;
+
+   	public GameEngine() 	
+   	{
+   		tree = new TreeSet<String>();
+   		path = new ArrayList<Integer>();
+   		vaildWords = new TreeSet<String>();
+   		path2 = new ArrayList<Integer>();
+   	}
+
+   	public void loadLexicon(String fileName) 
+   	{
+   		if (fileName == null) 
+   		{
+   			throw new IllegalArgumentException();
+   		}
+      
+   		Scanner fileScan;
+   		Scanner lineScanner;
+   		String line;
+   		try 
+   		{
+   			fileScan = new Scanner(new FileReader(fileName));
+   			while (fileScan.hasNext()) 
+   			{
+   				line = fileScan.nextLine();
+   				lineScanner = new Scanner(line);
+   				lineScanner.useDelimiter(" ");
+            	while (lineScanner.hasNext()) 
+            	{
+            		tree.add(lineScanner.next().toLowerCase());
+            	}
+   			}
+   		} 
+      
+   		catch (Exception e) 
+   		{
+   			throw new IllegalArgumentException();
+   		}
+   
+   		lexiconLoaded = true;
+   }
+
+   public void setBoard(String[] letterArray) 
+   {
+	   if (letterArray == null) 
+	   {
+		   throw new IllegalArgumentException();
+	   }
+      
+	   double dimension = Math.sqrt(letterArray.length);
+   
+	   if (dimension % 1 > 0) 
+	   {
+		   throw new IllegalArgumentException();
+	   }
+      
+	   else 
+	   {
+		   num = (int) dimension;
+		   board = new String[num][num];
+		   visited = new boolean[num][num];
+		   int count = 0;
+		   for (int i = 0; i < num; i++) 
+		   {
+			   for (int j = 0; j < num; j++) 
+			   {
+				   visited[i][j] = false;
+				   board[i][j] = letterArray[count].toLowerCase();
+				   count++;
+			   }
+		   }
+	   }
+   }
+
+   public String getBoard() 
+   {
+	   return Arrays.deepToString(board);
+   }
+
+   public SortedSet<String> getAllScorableWords(int minimumWordLength) 
+   {
+	   minLength = minimumWordLength;
+	   vaildWords.clear();
+      
+	   if (!lexiconLoaded) 
+	   {
+		   throw new IllegalStateException();
+	   }
+      
+	   if (minimumWordLength < 1) 
+	   {
+		   throw new IllegalArgumentException();
+	   }
+      
+	   for (int i = 0; i < num; i++) 
+	   {
+		   for (int j = 0; j < num; j++) 
+		   {
+			   findWord(board[i][j], i, j);
+		   }
+	   }
+	   return vaildWords;
+   }
+
+   public int getScoreForWords(SortedSet<String> words, int minimumWordLength) 
+   {
+	   if (!lexiconLoaded) 
+	   {
+		   throw new IllegalStateException();
+	   }
+   
+	   if (minimumWordLength < 1) 
+	   {
+		   throw new IllegalArgumentException();
+	   }
+   
+	   int score = 0;
+   
+	   for (String word: words) 
+	   {
+		   int size = word.length();
+		   score += 1 + (size - minimumWordLength);
+	   }	
+   
+	   return score;
+   }
+
+   public boolean isValidWord(String wordToCheck) 
+   {
+      if (!lexiconLoaded) 
+      {
+         throw new IllegalStateException();
+      }
+      
+      if (wordToCheck == null) 
+      {
+         throw new IllegalArgumentException();
+      }
+   
+      return tree.contains(wordToCheck.toLowerCase());
+   }
+
+   public boolean isValidPrefix(String prefixToCheck) 
+   {
+      if (!lexiconLoaded) 
+      {
+         throw new IllegalStateException();
+      }
+      
+      if (prefixToCheck == null) 
+      {
+         throw new IllegalArgumentException();
+      }
+      
+      return tree.ceiling(prefixToCheck).startsWith(prefixToCheck);
+   }
+
+   public List<Integer> isOnBoard(String wordToCheck) 
+   {
+      if (!lexiconLoaded) 
+      {
+         throw new IllegalStateException();
+      }
+   
+      if (wordToCheck == null) 
+      {
+         throw new IllegalArgumentException();
+      }
+      
+      path.clear();
+      path2.clear();
+   
+      for (int i = 0; i < (int) num; i++) 
+      {
+         for (int j = 0; j < num; j++) 
+         {
+            if (Character.toUpperCase(board[i][j].charAt(0)) == Character.toUpperCase(wordToCheck.charAt(0))) 
+            {
+               int value = j + (i * num);
+               path.add(value);
+               depthFirstSearchPosition(wordToCheck, board[i][j], i, j);
+               if (!path2.isEmpty()) 
+               {
+                  return path2;
+               }
+               path.clear();
+               path2.clear();
+            }
+         }
+      }
+      return path;
+   }
+
+   public void findWord(String word, int x, int y) 
+   {
+      if (!isValidPrefix(word)) 
+      {
+         return;
+      }
+   
+      visited[x][y] = true;
+   
+      if (isValidWord(word) && word.length() >= minLength) 
+      {
+         vaildWords.add(word.toUpperCase());
+      }
+   
+      for (int i = -1; i <= 1; i++) 
+      {
+         for (int j = -1; j <= 1; j++) 
+         {
+            if ((x + i) <= ((int) num - 1) && (y + j) <= ((int) num - 1) && (x + i) >= 0 && (y + j) >= 0 && !visited[x + i][y + j]) 
+            {
+               visited[x + i][y + j] = true;
+               findWord(word + board[x + i][y + j], x + i, y + j);
+               visited[x + i][y + j] = false;
+            }
+         }
+      }
+      visited[x][y] = false;
+   }
+
+   public void depthFirstSearchPosition(String wordToCheck, String current, int x, int y) 
+   {
+      visited[x][y] = true;
+      if (!(isValidPrefix(current))) 
+      {
+         return;
+      }
+      
+      if (current.toUpperCase().equals(wordToCheck.toUpperCase())) 
+      {
+         path2 = new ArrayList(path);
+         return;
+      }
+      
+      for (int i = -1; i <= 1; i++) 
+      {
+         for (int j = -1; j <= 1; j++) 
+         {
+            if (current.equals(wordToCheck)) 
+            {
+               break;
+            }
+            
+            if ((x + i) <= (num - 1) && (y + j) <= (num - 1) && (x + i) >= 0 && (y + j) >= 0 && !visited[x + i][y + j])
+            {
+               visited[x + i][y + j] = true;
+               int value = (x + i) * num + y + j;
+               path.add(value);
+               depthFirstSearchPosition(wordToCheck, current + board[x + i][y + j], x + i, y + j);
+               visited[x + i][y + j] = false;
+               path.remove(path.size() - 1);
+            }
+         }
+      }
+      visited[x][y] = false;
+   }
+}

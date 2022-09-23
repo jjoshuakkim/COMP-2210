@@ -1,0 +1,16 @@
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.TreeSet;
+
+import org.junit.jupiter.api.Test;
+
+class GameEngineTest 
+{
+
+	@Test
+	public void testLoadLexicon()
+	{
+		WordSearchGame game = new WordSearchGameFactory.createGame();
+	}
+
+}
